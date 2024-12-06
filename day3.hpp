@@ -1,7 +1,3 @@
-//
-// Created by pontusfr on 2024-12-05.
-//
-
 #ifndef AOC2024_DAY3_HPP
 #define AOC2024_DAY3_HPP
 
