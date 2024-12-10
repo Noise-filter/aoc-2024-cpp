@@ -13,8 +13,8 @@ struct EmptySpace {
 };
 
 std::vector<EmptySpace> extractEmptyPlaces(const std::vector<int>& data);
-
 long long int calculateChecksum(const std::vector<int>& data);
+
 std::vector<int> parseInputFile() {
     std::ifstream input("../input/day9.txt");
     if (!input) {
