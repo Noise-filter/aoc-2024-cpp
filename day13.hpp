@@ -63,8 +63,6 @@ std::vector<Machine> parseInputFile() {
         std::getline(input, buffer);
     }
 
-    buffer.erase(std::remove(buffer.begin(), buffer.end(), '\n'), buffer.cend());
-
     return machines;
 }
 
@@ -97,7 +95,6 @@ auto part1() {
                     auto gcdResult1 = gcd(machine.a.x, machine.a.y);
                     auto gcdResult2 = gcd(machine.b.x, machine.b.y);
                     std::cout << gcdResult1 << ' ' << gcdResult2 << std::endl;
-
                 }
             }
         }
