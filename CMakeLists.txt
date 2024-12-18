@@ -19,4 +19,5 @@ add_executable(aoc2024 main.cpp
         day13.hpp
         day14.hpp
         day15.hpp
+        day18.hpp
 )
