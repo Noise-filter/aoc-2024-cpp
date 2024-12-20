@@ -223,7 +223,7 @@ auto part2() {
 
     size_t result = 0;
     for (int i = 0; i < path.size(); i++) {
-        for (int j = i + 1; j < path.size(); j++) {
+        for (int j = i + 102; j < path.size(); j++) {
             auto dist = distance(path[i], path[j]);
             if (dist <= 20) {
                 auto save = j - i - dist;
