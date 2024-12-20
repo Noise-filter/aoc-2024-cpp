@@ -1,5 +1,5 @@
-#ifndef AOC2024_DAY19_HPP
-#define AOC2024_DAY19_HPP
+#ifndef AOC2024_DAY20_HPP
+#define AOC2024_DAY20_HPP
 
 #include <algorithm>
 #include <array>
@@ -52,7 +52,7 @@ struct Coord {
 };
 
 Grid parseInputFile() {
-    std::ifstream input("../input/day19.txt");
+    std::ifstream input("../input/day20.txt");
     if (!input) {
         throw "Couldn't parse input file";
     }
@@ -237,4 +237,4 @@ auto part2() {
     return result;
 }
 
-#endif // AOC2024_DAY19_HPP
+#endif // AOC2024_DAY20_HPP
