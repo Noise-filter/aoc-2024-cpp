@@ -1,5 +1,5 @@
-#ifndef AOC2024_DAY18_HPP
-#define AOC2024_DAY18_HPP
+#ifndef AOC2024_DAY20_HPP
+#define AOC2024_DAY20_HPP
 
 #include <algorithm>
 #include <array>
@@ -7,13 +7,20 @@
 #include <fstream>
 #include <iostream>
 #include <queue>
+#include <tuple>
 #include <vector>
 
+constexpr char START = 'S';
+constexpr char END = 'E';
 constexpr char WALL = '#';
+constexpr char EMPTY = '.';
+constexpr int GRID_SIZE = 141;
+using Grid = std::array<std::array<char, GRID_SIZE>, GRID_SIZE>;
 
 struct Coord {
     long long x;
     long long y;
+    Coord() : x(0), y(0) {}
     Coord(long long _x, long long _y) : x(_x), y(_y) {}
 
     friend Coord operator%(const Coord& lhs, const Coord& rhs) { return {lhs.x % rhs.x, lhs.y % rhs.y}; }
@@ -44,25 +51,22 @@ struct Coord {
     }
 };
 
-std::vector<Coord> parseInputFile() {
-    std::ifstream input("../input/day18.txt");
+Grid parseInputFile() {
+    std::ifstream input("../input/day20.txt");
     if (!input) {
         throw "Couldn't parse input file";
     }
 
-    std::vector<Coord> result;
-    int number1, number2;
-    while (input >> number1) {
-        input.ignore();
-        input >> number2;
-        result.emplace_back(number1, number2);
+    Grid grid;
+    std::string line;
+    int i = 0;
+    while (std::getline(input, line)) {
+        std::copy(line.begin(), line.end(), grid[i].data());
+        i++;
     }
 
-    return result;
+    return grid;
 }
-
-constexpr int GRID_SIZE = 71;
-using Grid = std::array<std::array<char, GRID_SIZE>, GRID_SIZE>;
 
 void print(const Grid& grid) {
     for (const auto& row : grid) {
@@ -92,7 +96,7 @@ std::vector<Node> getNeighbors(const Grid& grid, const Coord& current) {
 
     for (const auto& dir : DIRECTIONS) {
         auto pos = dir + current;
-        if (grid[pos.y][pos.x] != WALL && pos.x >= 0 && pos.y >= 0 && pos.x < grid.size() && pos.y < grid.size()) {
+        if (grid[pos.y][pos.x] != WALL) {
             neighbors.emplace_back(pos, 0);
         }
     }
@@ -104,7 +108,7 @@ std::vector<Coord> reconstructPath(const std::vector<Coord>& cameFrom, const Nod
     std::vector<Coord> path;
     auto currentPos = current.pos;
     int index = currentPos.y * height + currentPos.x;
-    while (index > 0 && cameFrom[index].x != -1) {
+    while (index >= 0 && cameFrom[index].x != -1) {
         path.emplace_back(currentPos);
         currentPos = cameFrom[index];
         index = currentPos.y * height + currentPos.x;
@@ -147,61 +151,90 @@ std::vector<Coord> findPath(const Grid& grid, const Coord& start, const Coord& e
     return {};
 }
 
-auto part1() {
-    std::vector<Coord> data = parseInputFile();
-    Grid grid;
-
-    for (auto& row : grid) {
-        for (auto& p : row) {
-            p = '.';
+std::pair<Coord, Coord> findStartAndEnd(const Grid& grid) {
+    Coord start{0, 0}, end{0, 0};
+    for (int y = 0; y < grid.size(); y++) {
+        for (int x = 0; x < grid[y].size(); x++) {
+            if (grid[y][x] == START) {
+                start = {x, y};
+            } else if (grid[y][x] == END) {
+                end = {x, y};
+            }
         }
     }
+    return {start, end};
+}
 
-    for (int i = 0; i < 1024; i++) {
-        grid[data[i].y][data[i].x] = '#';
-    }
+auto part1() {
+    Grid grid = parseInputFile();
+    Coord start;
+    Coord end;
+    std::tie(start, end) = findStartAndEnd(grid);
 
-    auto path = findPath(grid, {0, 0}, {GRID_SIZE - 1, GRID_SIZE - 1});
-
+    auto path = findPath(grid, start, end);
+    path.insert(path.begin(), start);
     // for (auto& pos : path) {
     //     grid[pos.y][pos.x] = '*';
     // }
-    //
     // std::cout << '\n';
     // print(grid);
 
-    return path.size();
-}
-
-Coord part2() {
-    std::vector<Coord> data = parseInputFile();
-    Grid grid;
-
-    for (auto& row : grid) {
-        for (auto& p : row) {
-            p = '.';
-        }
-    }
-
-    for (int i = 0; i < 1024; i++) {
-        grid[data[i].y][data[i].x] = '#';
-    }
-
-    auto path = findPath(grid, {0, 0}, {GRID_SIZE - 1, GRID_SIZE - 1});
-    for (int i = 1023; i < data.size(); i++) {
-        grid[data[i].y][data[i].x] = '#';
-        for (auto& p : path) {
-            if (p.x == data[i].x && p.y == data[i].y) {
-                path = findPath(grid, {0, 0}, {GRID_SIZE - 1, GRID_SIZE - 1});
-                if (path.empty()) {
-                    return data[i];
+    size_t result = 0;
+    std::array<Coord, 4> directions{{{0, 2}, {0, -2}, {2, 0}, {-2, 0}}};
+    for (int i = 0; i < path.size(); i++) {
+        for (const auto& dir : directions) {
+            auto newPos = path[i] + dir;
+            if (grid[newPos.y][newPos.x] == '.') {
+                for (int j = i + 102; j < path.size(); j++) {
+                    if (newPos == path[j]) {
+                        auto save = j - i - 2;
+                        if (save >= 100) {
+                            result += 1;
+                        }
+                        break;
+                    }
                 }
-                break;
             }
         }
     }
 
-    return {0, 0};
+    // for (auto& pos : path) {
+    //     grid[pos.y][pos.x] = '*';
+    // }
+    // std::cout << '\n';
+    // print(grid);
+
+    return result;
 }
 
-#endif // AOC2024_DAY18_HPP
+long long distance(const Coord& pos1, const Coord& pos2) {
+    auto dist = pos1 - pos2;
+    return std::abs(dist.x) + std::abs(dist.y);
+}
+
+auto part2() {
+    Grid grid = parseInputFile();
+    Coord start;
+    Coord end;
+    std::tie(start, end) = findStartAndEnd(grid);
+
+    auto path = findPath(grid, start, end);
+    path.insert(path.begin(), start);
+
+    size_t result = 0;
+    for (int i = 0; i < path.size(); i++) {
+        for (int j = i + 102; j < path.size(); j++) {
+            auto dist = distance(path[i], path[j]);
+            if (dist <= 20) {
+                auto save = j - i - dist;
+                if (save >= 100) {
+                    result += 1;
+                }
+            }
+        }
+    }
+
+    return result;
+}
+
+#endif // AOC2024_DAY20_HPP

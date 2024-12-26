@@ -89,7 +89,7 @@ struct Node {
     Node(long long _x, long long _y, int _f) : pos({_x, _y}), f(_f) {}
 };
 
-auto compare = [](const Node& lhs, const Node& rhs) { return false; };
+auto compare = [](const Node& lhs, const Node& rhs) { return lhs.f > rhs.f; };
 const std::array<Coord, 4> DIRECTIONS{{{0, 1}, {1, 0}, {0, -1}, {-1, 0}}};
 
 int heuristic(const Coord& current, const Coord& dir, const Coord& neighbor) {
@@ -97,14 +97,11 @@ int heuristic(const Coord& current, const Coord& dir, const Coord& neighbor) {
     if (newPos == neighbor) {
         return 1;
     }
-    if (newPos.x == neighbor.x || newPos.y == neighbor.y) {
-        return 2001;
-    }
     return 1001;
 }
 
 int heuristic(const Coord& current, const Coord& neighbor) {
-    return std::pow(neighbor.x + current.x, 2) + std::pow(neighbor.y + current.y, 2);
+    return 1 * (std::abs(current.x - neighbor.x) + std::abs(current.y - neighbor.y));
 }
 
 std::vector<Node> getNeighbors(const std::vector<std::string>& grid, const Coord& current) {
@@ -141,25 +138,25 @@ std::vector<Coord> findPath(const std::vector<std::string>& grid, const Coord& s
     openSet.emplace(start, direction, heuristic(start, end));
     std::vector<Node> path;
 
-    gScore[start.y * grid.size() + start.x] = 0;
+    gScore[start.y * grid[0].size() + start.x] = 0;
 
     while (!openSet.empty()) {
         Node current = openSet.top();
-        // std::cout << current.pos.x << ' ' << current.pos.y << '\n';
-        int currentIndex = current.pos.y * grid.size() + current.pos.x;
         openSet.pop();
+        // std::cout << current.pos.x << ' ' << current.pos.y << '\n';
+        int currentIndex = current.pos.y * grid[0].size() + current.pos.x;
         if (current.pos == end) {
-            return reconstructPath(cameFrom, current, grid.size());
+            return reconstructPath(cameFrom, current, grid[0].size());
         }
 
         for (auto& neighbor : getNeighbors(grid, current.pos)) {
             int tentativeG = gScore[currentIndex] + heuristic(current.pos, current.dir, neighbor.pos);
-            int index = neighbor.pos.y * grid.size() + neighbor.pos.x;
+            int index = neighbor.pos.y * grid[0].size() + neighbor.pos.x;
             if (tentativeG < gScore[index]) {
                 // Came from
                 cameFrom[index] = current.pos;
                 gScore[index] = tentativeG;
-                neighbor.f = tentativeG + heuristic(current.pos, neighbor.pos);
+                neighbor.f = tentativeG + heuristic(neighbor.pos, end);
                 neighbor.dir = neighbor.pos - current.pos;
                 openSet.push(neighbor);
             }
@@ -195,43 +192,14 @@ auto part1() {
         direction = newDirection;
     }
 
+    std::ofstream output("output.txt");
+
     for (auto& row : grid) {
-        std::cout << row << std::endl;
+        output << row << '\n';
     }
-    std::cout << std::endl;
+    output << std::endl;
 
     return score;
-}
-
-struct TreeNode {
-    Coord pos;
-    bool turn = false;
-};
-
-bool floodFill(std::vector<std::string>& grid, std::set<int>& checked, const Coord& pos, const Coord& endPos,
-               const Coord& dir) {
-    if (grid[pos.y][pos.x] == WALL) {
-        return false;
-    }
-    if (pos == endPos) {
-        return true;
-    }
-    auto newPos = pos + dir;
-    grid[pos.y][pos.x] = '*';
-
-    std::bitset<3> results;
-    results.set(0, floodFill(grid, checked, pos + dir, endPos, dir));
-    if (dir.x == 0) {
-        results.set(1, floodFill(grid, checked, pos + Coord{1, 0}, endPos, {1, 0}));
-        results.set(2, floodFill(grid, checked, pos + Coord{-1, 0}, endPos, {-1, 0}));
-    } else {
-        results.set(1, floodFill(grid, checked, pos + Coord{0, 1}, endPos, {0, 1}));
-        results.set(2, floodFill(grid, checked, pos + Coord{0, -1}, endPos, {0, -1}));
-    }
-    if (results.none()) {
-        return false;
-    }
-    return true;
 }
 
 auto part2() {
@@ -240,9 +208,6 @@ auto part2() {
     Coord end{0, 0};
     std::tie(start, end) = findStartAndEnd(grid);
     Coord direction{1, 0};
-
-    std::set<int> checked;
-    floodFill(grid, checked, start, end, direction);
 
     return 0;
 }
