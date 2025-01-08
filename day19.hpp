@@ -15,7 +15,6 @@ void split(const std::string& str, std::vector<std::string>& out) {
     std::string item;
 
     while (std::getline(ss, item, ',')) {
-        char c;
         ss.ignore(1);
         if (item[0] == ' ') {
             item.erase(item.begin(), item.begin() + 1);

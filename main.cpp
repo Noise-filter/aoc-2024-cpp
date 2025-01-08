@@ -1,4 +1,4 @@
-#include "day22.hpp"
+#include "day24.hpp"
 
 #include <chrono>
 #include <iostream>
