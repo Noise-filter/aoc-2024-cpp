@@ -1,7 +1,6 @@
 #ifndef DAY13_HPP
 #define DAY13_HPP
 
-#include <algorithm>
 #include <bitset>
 #include <cmath>
 #include <fstream>
@@ -66,37 +65,17 @@ std::vector<Machine> parseInputFile() {
     return machines;
 }
 
-constexpr long long gcd(const long long a, const long long b) {
-    // Everything divides 0
-    if (a == 0)
-        return b;
-    if (b == 0)
-        return a;
-
-    // Base case
-    if (a == b)
-        return a;
-
-    // a is greater
-    if (a > b)
-        return gcd(a - b, b);
-    return gcd(a, b - a);
-}
-
 auto part1() {
     std::vector<Machine> data = parseInputFile();
 
     size_t result = 0;
-    for (const auto& machine : data) {
-        for (int x = 0; x < 100; x++) {
-            for (int y = 0; y < 100; y++) {
-                if (machine.a * x + machine.b * y == machine.goal) {
-                    result += x * 3 + y;
-                    auto gcdResult1 = gcd(machine.a.x, machine.a.y);
-                    auto gcdResult2 = gcd(machine.b.x, machine.b.y);
-                    std::cout << gcdResult1 << ' ' << gcdResult2 << std::endl;
-                }
-            }
+    for (auto& machine : data) {
+        auto a = (machine.goal.x * machine.b.y - machine.goal.y * machine.b.x) /
+                 (machine.a.x * machine.b.y - machine.a.y * machine.b.x);
+        auto b = (machine.goal.y * machine.a.x - machine.goal.x * machine.a.y) /
+                 (machine.a.x * machine.b.y - machine.a.y * machine.b.x);
+        if (machine.a * a + machine.b * b == machine.goal) {
+            result += a * 3 + b;
         }
     }
 
@@ -105,21 +84,22 @@ auto part1() {
 
 auto part2() {
     std::vector<Machine> data = parseInputFile();
+
+    size_t result = 0;
     for (auto& machine : data) {
-        // machine.goal.x += 10000000000000;
-        // machine.goal.y += 10000000000000;
+        machine.goal.x += 10000000000000;
+        machine.goal.y += 10000000000000;
 
-        auto gcdResult1 = gcd(machine.a.x, machine.a.y);
-        auto gcdResult2 = gcd(machine.b.x, machine.b.y);
-        if (gcdResult1 != 1) {
-            auto a = machine.a.x / gcdResult1;
-            auto b = machine.a.y / gcdResult1;
-        } else if (gcdResult2 != 1) {
+        auto a = (machine.goal.x * machine.b.y - machine.goal.y * machine.b.x) /
+                 (machine.a.x * machine.b.y - machine.a.y * machine.b.x);
+        auto b = (machine.goal.y * machine.a.x - machine.goal.x * machine.a.y) /
+                 (machine.a.x * machine.b.y - machine.a.y * machine.b.x);
+
+        if (machine.a * a + machine.b * b == machine.goal) {
+            result += (a * 3) + b;
         }
-        std::cout << gcdResult1 << ' ' << gcdResult2 << std::endl;
     }
-
-    return 0;
+    return result;
 }
 
 #endif // DAY13_HPP
