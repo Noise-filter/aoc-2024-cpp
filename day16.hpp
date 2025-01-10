@@ -8,8 +8,8 @@
 #include <cmath>
 #include <fstream>
 #include <iostream>
+#include <limits>
 #include <queue>
-#include <set>
 #include <tuple>
 #include <vector>
 
@@ -39,12 +39,6 @@ struct Coord {
         return lhs;
     }
     friend bool operator==(const Coord& lhs, const Coord& rhs) { return lhs.x == rhs.x && lhs.y == rhs.y; }
-};
-
-struct Robot {
-    Coord pos;
-    Coord vel;
-    Robot(const Coord _pos, const Coord _vel) : pos(_pos), vel(_vel) {}
 };
 
 constexpr char WALL = '#';
@@ -92,7 +86,7 @@ struct Node {
 auto compare = [](const Node& lhs, const Node& rhs) { return lhs.f > rhs.f; };
 const std::array<Coord, 4> DIRECTIONS{{{0, 1}, {1, 0}, {0, -1}, {-1, 0}}};
 
-int heuristic(const Coord& current, const Coord& dir, const Coord& neighbor) {
+int calculateCost(const Coord& current, const Coord& dir, const Coord& neighbor) {
     auto newPos = current + dir;
     if (newPos == neighbor) {
         return 1;
@@ -133,10 +127,9 @@ std::vector<Coord> reconstructPath(const std::vector<Coord>& cameFrom, const Nod
 std::vector<Coord> findPath(const std::vector<std::string>& grid, const Coord& start, const Coord& end,
                             const Coord& direction) {
     std::priority_queue<Node, std::vector<Node>, decltype(compare)> openSet(compare);
-    std::vector<int> gScore(grid.size() * grid[0].size(), (1 << 31) - 1);
+    std::vector<int> gScore(grid.size() * grid[0].size(), std::numeric_limits<int>::max());
     std::vector<Coord> cameFrom(grid.size() * grid[0].size(), {-1, -1});
     openSet.emplace(start, direction, heuristic(start, end));
-    std::vector<Node> path;
 
     gScore[start.y * grid[0].size() + start.x] = 0;
 
@@ -150,7 +143,7 @@ std::vector<Coord> findPath(const std::vector<std::string>& grid, const Coord& s
         }
 
         for (auto& neighbor : getNeighbors(grid, current.pos)) {
-            int tentativeG = gScore[currentIndex] + heuristic(current.pos, current.dir, neighbor.pos);
+            int tentativeG = gScore[currentIndex] + calculateCost(current.pos, current.dir, neighbor.pos);
             int index = neighbor.pos.y * grid[0].size() + neighbor.pos.x;
             if (tentativeG < gScore[index]) {
                 // Came from
@@ -187,7 +180,15 @@ auto part1() {
         } else {
             score += 1001;
         }
-        grid[step.y][step.x] = '*';
+        if (newDirection.x == 1) {
+            grid[step.y][step.x] = '>';
+        } else if (newDirection.x == -1) {
+            grid[step.y][step.x] = '<';
+        } else if (newDirection.y == -1) {
+            grid[step.y][step.x] = '^';
+        } else if (newDirection.y == 1) {
+            grid[step.y][step.x] = 'v';
+        }
         lastStep = step;
         direction = newDirection;
     }
